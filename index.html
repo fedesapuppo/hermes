@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hermes Agent — Tu Asistente Digital, Siempre en tu Bolsillo</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0a0f'/%3E%3Ctext x='3' y='24' font-family='Georgia,serif' font-size='22' font-weight='bold' fill='white'%3EH%3C/text%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='bold' fill='%23c8a2f8'%3EA%3C/text%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            surface: { 50: '#0a0a0f', 100: '#12121a', 200: '#1a1a26', 300: '#242436' },
+            accent: { DEFAULT: '#c8a2f8', dim: '#9b6dd7', bright: '#e4d0ff' },
+            warm: { DEFAULT: '#f5c16c', dim: '#d4a04a' },
+            ice: '#e8edf4',
+          },
+          fontFamily: {
+            display: ['"Instrument Serif"', 'Georgia', 'serif'],
+            body: ['"DM Sans"', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body { background: #0a0a0f; }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    /* Hero gradient mesh */
+    .hero-glow {
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 30%, rgba(200,162,248,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 80% 60%, rgba(245,193,108,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 80% 40% at 50% 0%, rgba(155,109,215,0.06) 0%, transparent 60%);
+    }
+
+    /* Fade-in on scroll */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s cubic-bezier(.16,1,.3,1), transform 0.7s cubic-bezier(.16,1,.3,1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Card hover lift */
+    .card-lift {
+      transition: transform 0.35s cubic-bezier(.16,1,.3,1), box-shadow 0.35s ease;
+    }
+    .card-lift:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px -12px rgba(200,162,248,0.15);
+    }
+
+    /* Pricing card glow border */
+    .price-glow {
+      position: relative;
+    }
+    .price-glow::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(200,162,248,0.3), rgba(245,193,108,0.15), rgba(200,162,248,0.1));
+      z-index: -1;
+    }
+
+    /* Step connector line */
+    .step-line {
+      background: linear-gradient(180deg, rgba(200,162,248,0.4) 0%, rgba(200,162,248,0.05) 100%);
+    }
+
+    /* FAQ accordion */
+    .faq-answer {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.35s cubic-bezier(.16,1,.3,1);
+    }
+    .faq-answer.open {
+      grid-template-rows: 1fr;
+    }
+    .faq-answer > div {
+      overflow: hidden;
+    }
+
+    /* Nav blur */
+    .nav-blur {
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    }
+
+    /* Stagger children */
+    .stagger > *:nth-child(1) { transition-delay: 0s; }
+    .stagger > *:nth-child(2) { transition-delay: 0.08s; }
+    .stagger > *:nth-child(3) { transition-delay: 0.16s; }
+    .stagger > *:nth-child(4) { transition-delay: 0.24s; }
+  </style>
+</head>
+<body class="font-body text-ice antialiased overflow-x-hidden">
+
+  <!-- Nav -->
+  <nav class="fixed top-0 inset-x-0 z-50 nav-blur bg-surface-50/70 border-b border-white/5">
+    <div class="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
+      <a href="#" class="font-display text-2xl tracking-tight text-white">Hermes <span class="text-accent">Agent</span></a>
+      <div class="hidden md:flex items-center gap-8 text-sm text-ice/60 font-medium">
+        <a href="#funciones" class="hover:text-accent transition-colors">Funciones</a>
+        <a href="#precios" class="hover:text-accent transition-colors">Precios</a>
+        <a href="contrato.html" class="hover:text-accent transition-colors">Contrato</a>
+        <a href="https://wa.me/543584226297?text=Hola%2C%20quiero%20saber%20m%C3%A1s%20sobre%20Hermes%20Agent" class="ml-2 inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 transition-all"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.553 4.12 1.52 5.857L.057 23.534a.5.5 0 00.61.61l5.677-1.463A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.586l-.386-.232-3.364.867.884-3.364-.232-.386A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Empezar</a>
+      </div>
+      <button id="mobile-toggle" class="md:hidden text-ice/60 hover:text-white transition-colors">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden border-t border-white/5 bg-surface-100/95 nav-blur">
+      <div class="flex flex-col gap-1 px-6 py-4 text-sm">
+        <a href="#funciones" class="py-2 text-ice/60 hover:text-accent transition-colors">Funciones</a>
+        <a href="#precios" class="py-2 text-ice/60 hover:text-accent transition-colors">Precios</a>
+        <a href="contrato.html" class="py-2 text-ice/60 hover:text-accent transition-colors">Contrato</a>
+        <a href="https://wa.me/543584226297?text=Hola%2C%20quiero%20saber%20m%C3%A1s%20sobre%20Hermes%20Agent" class="mt-2 inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-accent/10 text-accent border border-accent/20"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.553 4.12 1.52 5.857L.057 23.534a.5.5 0 00.61.61l5.677-1.463A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.586l-.386-.232-3.364.867.884-3.364-.232-.386A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Empezar</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero-glow relative min-h-screen flex items-center pt-24 pb-16">
+    <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+      <div class="reveal">
+        <p class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/8 border border-accent/15 text-accent text-xs font-medium tracking-wide uppercase mb-8">
+          <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+          Bot de Telegram gestionado
+        </p>
+        <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl leading-[1.05] text-white mb-6">
+          Tu Asistente Digital,<br>
+          <span class="text-accent italic">Siempre en<br>tu Bolsillo</span>
+        </h1>
+        <p class="text-lg text-ice/50 max-w-lg leading-relaxed mb-6">
+          Dictale un memo de voz y que te arme un reclamo administrativo. Pedile que te haga la declaración jurada de SIFERE. Despertate con un audio que te resume las noticias, los mercados y tu agenda del día.
+        </p>
+        <p class="text-sm text-ice/35 max-w-lg leading-relaxed mb-10">
+          Ideal para contadores, abogados y comerciantes que quieren un asistente que trabaje las 24 horas sin pedir vacaciones.
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <a href="https://wa.me/543584226297?text=Hola%2C%20quiero%20saber%20m%C3%A1s%20sobre%20Hermes%20Agent" class="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#25D366] text-white font-semibold text-sm tracking-wide hover:bg-[#20bd5a] transition-all">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.553 4.12 1.52 5.857L.057 23.534a.5.5 0 00.61.61l5.677-1.463A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.586l-.386-.232-3.364.867.884-3.364-.232-.386A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+            WhatsApp
+          </a>
+          <a href="mailto:fedesapuppo@hotmail.com?subject=Quiero%20saber%20m%C3%A1s%20sobre%20Hermes%20Agent" class="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full border border-white/10 text-ice/70 text-sm font-medium hover:border-accent/30 hover:text-accent transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
+            Email
+          </a>
+          <a href="#funciones" class="px-8 py-3.5 rounded-full border border-white/10 text-ice/70 text-sm font-medium hover:border-accent/30 hover:text-accent transition-all">
+            Ver funciones
+          </a>
+        </div>
+      </div>
+      <div class="reveal hidden lg:flex justify-center" style="transition-delay:0.15s">
+        <!-- Floating chat mockup -->
+        <div class="relative w-80">
+          <div class="absolute -inset-12 bg-gradient-to-br from-accent/10 via-transparent to-warm/5 rounded-full blur-3xl"></div>
+          <div class="relative bg-surface-200 rounded-3xl border border-white/8 p-6 shadow-2xl shadow-black/40">
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-accent-dim flex items-center justify-center text-surface-50 font-display text-lg">H</div>
+              <div>
+                <p class="text-white text-sm font-semibold">Hermes Agent</p>
+                <p class="text-xs text-accent/60">en línea</p>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div class="flex justify-end">
+                <div class="bg-accent/15 text-accent-bright text-sm px-4 py-2.5 rounded-2xl rounded-br-md max-w-[85%]">
+                  🎤 <span class="text-ice/40 italic text-xs">Memo de voz — 0:47</span>
+                </div>
+              </div>
+              <div class="flex justify-start">
+                <div class="bg-surface-300 text-ice/80 text-sm px-4 py-2.5 rounded-2xl rounded-bl-md max-w-[85%]">
+                  Listo. Te armé el reclamo administrativo citando la Ley 19.549 y la Resolución 1523. Te lo mando como PDF.
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <div class="bg-accent/15 text-accent-bright text-sm px-4 py-2.5 rounded-2xl rounded-br-md">
+                  Y mandame el SIFERE de abril
+                </div>
+              </div>
+              <div class="flex justify-start">
+                <div class="bg-surface-300 text-ice/80 text-sm px-4 py-2.5 rounded-2xl rounded-bl-md max-w-[85%]">
+                  Dale, ya lo proceso. Te aviso en 2 minutos.
+                </div>
+              </div>
+            </div>
+            <div class="mt-5 flex items-center gap-2 bg-surface-50/50 rounded-full px-4 py-2.5 border border-white/5">
+              <span class="text-ice/20 text-sm flex-1">Escribí un mensaje...</span>
+              <div class="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center">
+                <svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="funciones" class="py-24 lg:py-32">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="reveal text-center mb-16">
+        <p class="text-accent text-xs font-medium tracking-widest uppercase mb-4">Qué puede hacer por vos</p>
+        <h2 class="font-display text-4xl lg:text-5xl text-white">Un empleado que nunca<br><span class="text-accent italic">se toma el día</span></h2>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-5 stagger">
+        <!-- Card 1 -->
+        <div class="reveal card-lift bg-surface-100 border border-white/5 rounded-2xl p-8">
+          <div class="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
+          </div>
+          <h3 class="text-white text-lg font-semibold mb-2">Vive en Telegram</h3>
+          <p class="text-ice/45 leading-relaxed">Mandale un texto o un audio desde el celular, como si hablaras con un colega. Sin apps nuevas, sin pantallas complicadas. Le dictás lo que necesitás y listo.</p>
+        </div>
+        <!-- Card 2 -->
+        <div class="reveal card-lift bg-surface-100 border border-white/5 rounded-2xl p-8">
+          <div class="w-12 h-12 rounded-xl bg-warm/10 flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-warm" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+          </div>
+          <h3 class="text-white text-lg font-semibold mb-2">Redacta documentos con criterio</h3>
+          <p class="text-ice/45 leading-relaxed">Dale leyes, reglamentos y antecedentes, y te arma un reclamo administrativo, una nota formal o una presentación. Conoce la normativa que le cargues y la aplica.</p>
+        </div>
+        <!-- Card 3 -->
+        <div class="reveal card-lift bg-surface-100 border border-white/5 rounded-2xl p-8">
+          <div class="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"/></svg>
+          </div>
+          <h3 class="text-white text-lg font-semibold mb-2">Briefing matutino a tu medida</h3>
+          <p class="text-ice/45 leading-relaxed">Todas las mañanas te llega un audio con lo que vos elegís: política argentina, geopolítica, mercados globales, avances de IA, tu agenda del día. Lo escuchás camino al trabajo.</p>
+        </div>
+        <!-- Card 4 -->
+        <div class="reveal card-lift bg-surface-100 border border-white/5 rounded-2xl p-8">
+          <div class="w-12 h-12 rounded-xl bg-warm/10 flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-warm" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/></svg>
+          </div>
+          <h3 class="text-white text-lg font-semibold mb-2">Aprende de vos</h3>
+          <p class="text-ice/45 leading-relaxed">Recuerda tus clientes, tus preferencias, tu forma de hablar. Le decís una vez cómo querés las cosas y no te lo vuelve a preguntar. Cuanto más lo usás, mejor te entiende.</p>
+        </div>
+      </div>
+
+      <!-- Use cases strip -->
+      <div class="reveal mt-16 bg-surface-200/60 border border-white/5 rounded-2xl p-8 lg:p-10">
+        <h3 class="text-white text-lg font-semibold mb-6 text-center">Casos de uso reales</h3>
+        <div class="grid sm:grid-cols-3 gap-6 text-sm">
+          <div>
+            <p class="text-accent font-semibold mb-2">Contadores</p>
+            <p class="text-ice/40 leading-relaxed">Declaración jurada multiconvenio (SIFERE) todos los meses. Le pasás los datos por Telegram y te devuelve el formulario listo para presentar.</p>
+          </div>
+          <div>
+            <p class="text-warm font-semibold mb-2">Abogados</p>
+            <p class="text-ice/40 leading-relaxed">Cargale las leyes y reglamentos que aplican a tu caso. Dictale los hechos por audio y te arma el reclamo administrativo citando la normativa correcta.</p>
+          </div>
+          <div>
+            <p class="text-accent font-semibold mb-2">Comerciantes</p>
+            <p class="text-ice/40 leading-relaxed">Resumen diario de emails de proveedores, seguimiento de pedidos, recordatorios de vencimientos. Todo desde el mismo chat donde hablás con tus clientes.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="py-24 lg:py-32 bg-surface-100/40">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="reveal text-center mb-20">
+        <p class="text-accent text-xs font-medium tracking-widest uppercase mb-4">Proceso</p>
+        <h2 class="font-display text-4xl lg:text-5xl text-white">Cómo <span class="text-accent italic">funciona</span></h2>
+      </div>
+      <div class="relative">
+        <!-- Vertical connector -->
+        <div class="absolute left-8 lg:left-1/2 lg:-translate-x-px top-0 bottom-0 w-0.5 step-line hidden sm:block"></div>
+        <div class="space-y-16">
+          <!-- Step 1 -->
+          <div class="reveal relative flex items-start gap-8 lg:gap-16">
+            <div class="relative z-10 flex-shrink-0 w-16 h-16 rounded-2xl bg-surface-200 border border-accent/20 flex items-center justify-center">
+              <span class="font-display text-2xl text-accent">1</span>
+            </div>
+            <div class="pt-2">
+              <h3 class="text-white text-xl font-semibold mb-2">Llamada de descubrimiento</h3>
+              <p class="text-ice/45 leading-relaxed">30 minutos para entender tus necesidades: qué email usás, cómo preferís comunicarte, qué tareas te comen el día.</p>
+            </div>
+          </div>
+          <!-- Step 2 -->
+          <div class="reveal relative flex items-start gap-8 lg:gap-16">
+            <div class="relative z-10 flex-shrink-0 w-16 h-16 rounded-2xl bg-surface-200 border border-accent/20 flex items-center justify-center">
+              <span class="font-display text-2xl text-accent">2</span>
+            </div>
+            <div class="pt-2">
+              <h3 class="text-white text-xl font-semibold mb-2">Setup</h3>
+              <p class="text-ice/45 leading-relaxed">Configuramos tu instancia dedicada, conectamos tus cuentas de email y calendario, y personalizamos la identidad del agente.</p>
+            </div>
+          </div>
+          <!-- Step 3 -->
+          <div class="reveal relative flex items-start gap-8 lg:gap-16">
+            <div class="relative z-10 flex-shrink-0 w-16 h-16 rounded-2xl bg-surface-200 border border-warm/20 flex items-center justify-center">
+              <span class="font-display text-2xl text-warm">3</span>
+            </div>
+            <div class="pt-2">
+              <h3 class="text-white text-xl font-semibold mb-2">Estás en línea</h3>
+              <p class="text-ice/45 leading-relaxed">Abrís Telegram y tu asistente ya está ahí. Desde el primer día tenés briefings matutinos, resúmenes de email y un bot que aprende de vos.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="precios" class="py-24 lg:py-32">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="reveal text-center mb-16">
+        <p class="text-accent text-xs font-medium tracking-widest uppercase mb-4">Precios</p>
+        <h2 class="font-display text-4xl lg:text-5xl text-white">Simple y <span class="text-accent italic">transparente</span></h2>
+        <p class="text-ice/40 mt-4 text-lg">Instalación: <span class="text-white font-semibold">USD 500</span> &mdash; después, elegí tu plan mensual.</p>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <!-- Base -->
+        <div class="reveal card-lift bg-surface-100 border border-white/5 rounded-2xl p-8">
+          <p class="text-xs font-medium text-ice/40 uppercase tracking-widest mb-1">Plan</p>
+          <h3 class="text-white text-2xl font-semibold mb-6">Base</h3>
+          <div class="flex items-baseline gap-1 mb-8">
+            <span class="font-display text-5xl text-white">$50</span>
+            <span class="text-ice/40 text-sm">USD/mes</span>
+          </div>
+          <ul class="space-y-3 text-sm text-ice/50 mb-8">
+            <li class="flex gap-3"><span class="text-accent/60 mt-0.5">&#10003;</span> Telegram: texto y memos de voz</li>
+            <li class="flex gap-3"><span class="text-accent/60 mt-0.5">&#10003;</span> USD 10 de uso de IA incluido</li>
+            <li class="flex gap-3"><span class="text-accent/60 mt-0.5">&#10003;</span> Busca información en la web</li>
+            <li class="flex gap-3"><span class="text-accent/60 mt-0.5">&#10003;</span> Recuerda todo entre conversaciones</li>
+            <li class="flex gap-3"><span class="text-accent/60 mt-0.5">&#10003;</span> Respuestas en audio</li>
+            <li class="flex gap-3"><span class="text-accent/60 mt-0.5">&#10003;</span> 30 min/mes de soporte</li>
+          </ul>
+          <div class="flex gap-2">
+            <a href="https://wa.me/543584226297?text=Hola%2C%20quiero%20contratar%20el%20Plan%20Base" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full border border-white/10 text-ice/70 text-sm font-medium hover:border-[#25D366]/40 hover:text-[#25D366] transition-all">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.553 4.12 1.52 5.857L.057 23.534a.5.5 0 00.61.61l5.677-1.463A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.586l-.386-.232-3.364.867.884-3.364-.232-.386A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> WhatsApp
+            </a>
+            <a href="mailto:fedesapuppo@hotmail.com?subject=Quiero%20contratar%20Hermes%20Agent%20%E2%80%94%20Plan%20Base" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full border border-white/10 text-ice/70 text-sm font-medium hover:border-accent/30 hover:text-accent transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg> Email
+            </a>
+          </div>
+        </div>
+        <!-- Pro -->
+        <div class="reveal price-glow bg-surface-100 rounded-2xl p-8" style="transition-delay:0.1s">
+          <div class="flex items-center gap-3 mb-1">
+            <p class="text-xs font-medium text-accent uppercase tracking-widest">Plan</p>
+            <span class="text-[10px] font-semibold tracking-wider uppercase bg-accent/15 text-accent px-2.5 py-0.5 rounded-full">Popular</span>
+          </div>
+          <h3 class="text-white text-2xl font-semibold mb-6">Pro</h3>
+          <div class="flex items-baseline gap-1 mb-8">
+            <span class="font-display text-5xl text-white">$90</span>
+            <span class="text-ice/40 text-sm">USD/mes</span>
+          </div>
+          <ul class="space-y-3 text-sm text-ice/50 mb-8">
+            <li class="flex gap-3"><span class="text-accent mt-0.5">&#10003;</span> Todo lo del plan Base</li>
+            <li class="flex gap-3"><span class="text-accent mt-0.5">&#10003;</span> Lee y resume tu email (Gmail u Outlook)</li>
+            <li class="flex gap-3"><span class="text-accent mt-0.5">&#10003;</span> USD 25 de uso de IA incluido</li>
+            <li class="flex gap-3"><span class="text-accent mt-0.5">&#10003;</span> Voz premium (ElevenLabs) hasta 1 hr/mes</li>
+            <li class="flex gap-3"><span class="text-accent mt-0.5">&#10003;</span> 1 hora/mes de soporte</li>
+            <li class="flex gap-3"><span class="text-accent mt-0.5">&#10003;</span> Briefing matutino con audio premium</li>
+          </ul>
+          <div class="flex gap-2">
+            <a href="https://wa.me/543584226297?text=Hola%2C%20quiero%20contratar%20el%20Plan%20Pro" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full bg-[#25D366] text-white text-sm font-semibold hover:bg-[#20bd5a] transition-all">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.553 4.12 1.52 5.857L.057 23.534a.5.5 0 00.61.61l5.677-1.463A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.586l-.386-.232-3.364.867.884-3.364-.232-.386A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> WhatsApp
+            </a>
+            <a href="mailto:fedesapuppo@hotmail.com?subject=Quiero%20contratar%20Hermes%20Agent%20%E2%80%94%20Plan%20Pro" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full bg-accent text-surface-50 text-sm font-semibold hover:bg-accent-bright transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg> Email
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="py-24 lg:py-32 bg-surface-100/40">
+    <div class="max-w-3xl mx-auto px-6">
+      <div class="reveal text-center mb-16">
+        <p class="text-accent text-xs font-medium tracking-widest uppercase mb-4">FAQ</p>
+        <h2 class="font-display text-4xl lg:text-5xl text-white">Preguntas <span class="text-accent italic">frecuentes</span></h2>
+      </div>
+      <div class="reveal space-y-3">
+        <div class="border border-white/5 rounded-xl overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between px-6 py-5 text-left text-white text-sm font-medium hover:bg-white/[0.02] transition-colors">
+            <span>¿Pueden usar el agente varias personas de mi equipo?</span>
+            <svg class="w-4 h-4 text-ice/30 transition-transform faq-icon flex-shrink-0 ml-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer">
+            <div><p class="px-6 pb-5 text-sm text-ice/45 leading-relaxed">Cada instancia es personal: un usuario, un bot. Si tu equipo necesita acceso, ofrecemos despliegues individuales con descuento por grupo.</p></div>
+          </div>
+        </div>
+        <div class="border border-white/5 rounded-xl overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between px-6 py-5 text-left text-white text-sm font-medium hover:bg-white/[0.02] transition-colors">
+            <span>¿Cumplen con HIPAA, SOC2 u otras certificaciones?</span>
+            <svg class="w-4 h-4 text-ice/30 transition-transform faq-icon flex-shrink-0 ml-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer">
+            <div><p class="px-6 pb-5 text-sm text-ice/45 leading-relaxed">No ofrecemos certificaciones de cumplimiento. La arquitectura es single-tenant y tus datos están aislados, pero no es apta para datos médicos o financieros regulados.</p></div>
+          </div>
+        </div>
+        <div class="border border-white/5 rounded-xl overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between px-6 py-5 text-left text-white text-sm font-medium hover:bg-white/[0.02] transition-colors">
+            <span>¿Puede hacer llamadas telefónicas?</span>
+            <svg class="w-4 h-4 text-ice/30 transition-transform faq-icon flex-shrink-0 ml-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer">
+            <div><p class="px-6 pb-5 text-sm text-ice/45 leading-relaxed">No. La interacción es por texto y voz dentro de Telegram. Los agentes de llamadas telefónicas son un producto distinto con costos diferentes.</p></div>
+          </div>
+        </div>
+        <div class="border border-white/5 rounded-xl overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between px-6 py-5 text-left text-white text-sm font-medium hover:bg-white/[0.02] transition-colors">
+            <span>¿Puedo elegir qué modelo de IA usa?</span>
+            <svg class="w-4 h-4 text-ice/30 transition-transform faq-icon flex-shrink-0 ml-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer">
+            <div><p class="px-6 pb-5 text-sm text-ice/45 leading-relaxed">Cada instancia viene con un modelo por defecto optimizado para costo y calidad. Podés cambiar el modelo por sesión desde Telegram, pero el consumo corre por tu cuota incluida.</p></div>
+          </div>
+        </div>
+        <div class="border border-white/5 rounded-xl overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between px-6 py-5 text-left text-white text-sm font-medium hover:bg-white/[0.02] transition-colors">
+            <span>¿En qué región se almacenan mis datos?</span>
+            <svg class="w-4 h-4 text-ice/30 transition-transform faq-icon flex-shrink-0 ml-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer">
+            <div><p class="px-6 pb-5 text-sm text-ice/45 leading-relaxed">Tus datos se almacenan en un servidor en São Paulo, Brasil. No ofrecemos garantías de residencia de datos más allá de esa ubicación.</p></div>
+          </div>
+        </div>
+        <div class="border border-white/5 rounded-xl overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between px-6 py-5 text-left text-white text-sm font-medium hover:bg-white/[0.02] transition-colors">
+            <span>¿Qué pasa con mis datos si cancelo?</span>
+            <svg class="w-4 h-4 text-ice/30 transition-transform faq-icon flex-shrink-0 ml-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer">
+            <div><p class="px-6 pb-5 text-sm text-ice/45 leading-relaxed">Exportamos un backup comprimido con todas tus sesiones, memorias y configuraciones. Después, la app y el volumen se destruyen. Tus datos son tuyos.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-24 lg:py-32 relative overflow-hidden">
+    <div class="absolute inset-0 hero-glow opacity-60"></div>
+    <div class="relative max-w-3xl mx-auto px-6 text-center reveal">
+      <h2 class="font-display text-4xl lg:text-6xl text-white mb-6">
+        ¿Listo para tener tu<br><span class="text-accent italic">asistente digital</span>?
+      </h2>
+      <p class="text-ice/45 text-lg mb-10 max-w-lg mx-auto">Escribinos y en menos de una semana tenés tu agente configurado y funcionando en Telegram.</p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a href="https://wa.me/543584226297?text=Hola%2C%20quiero%20saber%20m%C3%A1s%20sobre%20Hermes%20Agent" class="group inline-flex items-center gap-2.5 px-10 py-4 rounded-full bg-[#25D366] text-white font-semibold tracking-wide hover:bg-[#20bd5a] transition-all text-lg">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.553 4.12 1.52 5.857L.057 23.534a.5.5 0 00.61.61l5.677-1.463A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.586l-.386-.232-3.364.867.884-3.364-.232-.386A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          WhatsApp
+        </a>
+        <a href="mailto:fedesapuppo@hotmail.com?subject=Quiero%20saber%20m%C3%A1s%20sobre%20Hermes%20Agent" class="group inline-flex items-center gap-2.5 px-10 py-4 rounded-full bg-accent text-surface-50 font-semibold tracking-wide hover:bg-accent-bright transition-all text-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
+          Email
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/5 py-8">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ice/30">
+      <p>Powered by <a href="https://github.com/NousResearch/hermes-agent" class="text-ice/50 hover:text-accent transition-colors underline underline-offset-2">hermes-agent</a> (open source)</p>
+      <div class="flex items-center gap-6">
+        <a href="contrato.html" class="hover:text-accent transition-colors">Contrato</a>
+        <a href="https://wa.me/543584226297" class="inline-flex items-center gap-1 hover:text-[#25D366] transition-colors"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.553 4.12 1.52 5.857L.057 23.534a.5.5 0 00.61.61l5.677-1.463A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.586l-.386-.232-3.364.867.884-3.364-.232-.386A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> WhatsApp</a>
+        <a href="mailto:fedesapuppo@hotmail.com" class="inline-flex items-center gap-1 hover:text-accent transition-colors"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg> Email</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll reveal
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+    // FAQ toggle
+    function toggleFaq(btn) {
+      const answer = btn.nextElementSibling;
+      const icon = btn.querySelector('.faq-icon');
+      const isOpen = answer.classList.contains('open');
+      // Close all
+      document.querySelectorAll('.faq-answer.open').forEach(a => { a.classList.remove('open'); a.closest('div').querySelector('.faq-icon').style.transform = ''; });
+      if (!isOpen) { answer.classList.add('open'); icon.style.transform = 'rotate(180deg)'; }
+    }
+
+    // Mobile menu
+    document.getElementById('mobile-toggle').addEventListener('click', () => {
+      document.getElementById('mobile-menu').classList.toggle('hidden');
+    });
+    document.querySelectorAll('#mobile-menu a').forEach(a => {
+      a.addEventListener('click', () => document.getElementById('mobile-menu').classList.add('hidden'));
+    });
+  </script>
+</body>
+</html>
