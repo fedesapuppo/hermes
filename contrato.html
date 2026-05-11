@@ -43,6 +43,20 @@
       backdrop-filter: blur(16px) saturate(1.4);
       -webkit-backdrop-filter: blur(16px) saturate(1.4);
     }
+    @media print {
+      @page { margin: 18mm 16mm; }
+      html, body { background: #ffffff !important; color: #111111 !important; }
+      body::before { display: none !important; }
+      nav, footer, .no-print { display: none !important; }
+      main { padding-top: 0 !important; padding-bottom: 0 !important; max-width: none !important; }
+      h1, h2, h3, strong, .text-white { color: #111111 !important; }
+      .text-accent { color: #5b3aa1 !important; }
+      .text-ice\/80, .text-ice\/70, .text-ice\/60, .text-ice\/50, .text-ice\/30 { color: #333333 !important; }
+      a { color: inherit !important; text-decoration: none !important; }
+      section, .border-t, .border-white\/10, .border-white\/5 { border-color: #cccccc !important; }
+      h2, h3 { page-break-after: avoid; }
+      section, li { page-break-inside: avoid; }
+    }
   </style>
 </head>
 <body class="font-body text-ice antialiased">
@@ -58,7 +72,31 @@
   <!-- Contract content -->
   <main class="max-w-3xl mx-auto px-6 pt-28 pb-20">
 
-    <h1 class="font-display text-4xl lg:text-5xl text-white mb-12">Contrato de Prestación<br>de Servicios</h1>
+    <h1 class="font-display text-4xl lg:text-5xl text-white mb-10">Contrato de Prestación<br>de Servicios</h1>
+
+    <!-- Download -->
+    <div class="no-print mb-14 p-5 sm:p-6 rounded-2xl border border-accent/20 bg-accent/5">
+      <p class="text-ice/70 text-sm leading-relaxed mb-4">
+        Descargá una copia editable, completá tus datos y firmá (digital o escaneada). Enviámela de vuelta a
+        <a href="mailto:fedesapuppo@hotmail.com" class="text-accent hover:text-accent-bright underline underline-offset-2">fedesapuppo@hotmail.com</a>.
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <a href="downloads/Contrato-Hermes-Agent.pdf" download
+           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-accent text-surface-50 font-semibold text-sm hover:bg-accent-bright transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4M5 20h14"/>
+          </svg>
+          Descargar PDF
+        </a>
+        <a href="downloads/Contrato-Hermes-Agent.docx" download
+           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-accent/40 text-accent font-semibold text-sm hover:bg-accent/10 hover:border-accent/70 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4M5 20h14"/>
+          </svg>
+          Descargar DOCX
+        </a>
+      </div>
+    </div>
 
     <!-- Section 1 -->
     <section class="mb-10">

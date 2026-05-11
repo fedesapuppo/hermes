@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+mkdir -p downloads
+
+pandoc contrato.md -o downloads/Contrato-Hermes-Agent.docx
+
+libreoffice --headless --convert-to pdf \
+  --outdir downloads \
+  downloads/Contrato-Hermes-Agent.docx >/dev/null
+
+python3 bin/add-pdf-form-fields.py downloads/Contrato-Hermes-Agent.pdf
+
+echo "Generated:"
+ls -lh downloads/Contrato-Hermes-Agent.*
